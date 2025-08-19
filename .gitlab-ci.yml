@@ -1,0 +1,51 @@
+stages:
+  - build
+  - deploy-test
+  - deploy-uat
+  - deploy-prod
+
+variables:
+  IMAGE_NAME: "$CI_REGISTRY_IMAGE/devops-flask-app:$CI_COMMIT_SHA"
+
+# Build stage: builds and pushes the Docker image
+build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - echo "Building Docker image..."
+    - docker build -t $IMAGE_NAME backend/
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker push $IMAGE_NAME
+  only:
+    - test
+    - uat
+    - main
+
+# Deploy to TEST environment
+deploy_test:
+  stage: deploy-test
+  script:
+    - echo "Placeholder: Deploy to TEST environment"
+    # Later: ansible-playbook -i inventory/test deploy.yml
+  only:
+    - test
+
+# Deploy to UAT environment
+deploy_uat:
+  stage: deploy-uat
+  script:
+    - echo "Placeholder: Deploy to UAT environment"
+    # Later: ansible-playbook -i inventory/uat deploy.yml
+  only:
+    - uat
+
+# Deploy to PROD environment
+deploy_prod:
+  stage: deploy-prod
+  script:
+    - echo "Placeholder: Deploy to PROD environment"
+    # Later: ansible-playbook -i inventory/prod deploy.yml
+  only:
+    - main
