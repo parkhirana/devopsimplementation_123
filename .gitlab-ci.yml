@@ -27,7 +27,7 @@ build:
 deploy_test:
   stage: deploy-test
   script:
-    - echo "Placeholder: Deploy to TEST environment"
+    - echo "Deploy to TEST environment"
     # Later: ansible-playbook -i inventory/test deploy.yml
   only:
     - test
@@ -36,7 +36,7 @@ deploy_test:
 deploy_uat:
   stage: deploy-uat
   script:
-    - echo "Placeholder: Deploy to UAT environment"
+    - echo "Deploy to UAT environment"
     # Later: ansible-playbook -i inventory/uat deploy.yml
   only:
     - uat
@@ -45,7 +45,7 @@ deploy_uat:
 deploy_prod:
   stage: deploy-prod
   script:
-    - echo "Placeholder: Deploy to PROD environment"
+    - echo "Deploy to PROD environment"
     # Later: ansible-playbook -i inventory/prod deploy.yml
   only:
     - main
