@@ -1,0 +1,30 @@
+---
+- name: Deploy Flask Backend App
+  hosts: all
+  become: yes
+
+  vars:
+    image_name: "{{ lookup('env', 'IMAGE_NAME') }}"  # passed from GitLab CI
+    container_name: flask-backend
+    host_port: 80      # expose app to internet
+    container_port: 5000
+
+  tasks:
+    - name: Ensure old container is stopped
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        state: absent
+
+    - name: Pull latest Docker image from GitLab registry
+      community.docker.docker_image:
+        name: "{{ image_name }}"
+        source: pull
+
+    - name: Run container with new image
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        image: "{{ image_name }}"
+        state: started
+        restart_policy: always
+        ports:
+          - "{{ host_port }}:{{ container_port }}"

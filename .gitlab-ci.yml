@@ -26,11 +26,24 @@ build:
 # Deploy to TEST environment
 deploy_test:
   stage: deploy-test
+  image: python:3.9   # Python image to run Ansible
+  before_script:
+    - pip install --upgrade pip
+    - pip install ansible
   script:
-    - echo "Placeholder: Deploy to TEST environment"
-    # Later: ansible-playbook -i inventory/test deploy.yml
+    # Write SSH key from GitLab variable
+    - echo "$env_EC2_SSH_KEY" > key.pem
+    - chmod 600 key.pem
+    
+    # Run the deploy playbook
+    - ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/setup.yml --limit test --private-key key.pem
+    - ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/deploy.yml --limit test --private-key key.pem
+    
+    # Remove key for safety
+    - rm -f key.pem
   only:
     - test
+
 
 # Deploy to UAT environment
 deploy_uat:
@@ -49,3 +62,4 @@ deploy_prod:
     # Later: ansible-playbook -i inventory/prod deploy.yml
   only:
     - main
+~

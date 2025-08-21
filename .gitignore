@@ -1,0 +1,20 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Logs
+*.log
+
+# Ansible retry files
+*.retry
+
+# Local configs / keys
+*.pem
+*.key
+
+# VSCode / IDE files
+.vscode/
+.idea/
+
+# Docker artifacts
+*.pid
