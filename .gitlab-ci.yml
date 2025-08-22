@@ -37,10 +37,10 @@ deploy_test:
     - chmod 600 ssh_key.pem
 
     # Run setup playbook
-    - ansible-playbook -i inventory/test setup.yaml --private-key=ssh_key.pem -u ubuntu
+    - ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/setup.yaml --private-key=ssh_key.pem -u ubuntu
 
     # Run deploy playbook
-    - ansible-playbook -i inventory/test deploy.yaml --private-key=ssh_key.pem -u ubuntu
+    - ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/deploy.yaml --private-key=ssh_key.pem -u ubuntu
   only:
     - test
 
