@@ -26,15 +26,24 @@ build:
 # Deploy to TEST environment
 deploy_test:
   stage: deploy-test
-  image: python:3.9   # Python image to run Ansible
+  image: python:3.9
   before_script:
     - pip install --upgrade pip
     - pip install ansible
   script:
-    - echo "Deploy to TEST environment"
-    # Later: ansible-playbook -i inventory/test deploy.yml
+    - echo "Deploying to TEST environment..."
+    # Save SSH key for Ansible
+    - echo "$env_EC2_SSH_KEY" > ssh_key.pem
+    - chmod 600 ssh_key.pem
+
+    # Run setup playbook
+    - ansible-playbook -i inventory/test setup.yaml --private-key=ssh_key.pem -u ubuntu
+
+    # Run deploy playbook
+    - ansible-playbook -i inventory/test deploy.yaml --private-key=ssh_key.pem -u ubuntu
   only:
     - test
+
 
 
 # Deploy to UAT environment
