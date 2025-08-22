@@ -59,7 +59,7 @@ deploy_uat:
 deploy_prod:
   stage: deploy-prod
   script:
-    - echo "Deploy to PROD environment"
+    - echo "Deploy to PRODenvironment"
     # Later: ansible-playbook -i inventory/prod deploy.yml
   only:
     - main
