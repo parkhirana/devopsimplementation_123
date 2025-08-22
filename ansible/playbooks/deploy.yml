@@ -15,6 +15,13 @@
         name: "{{ container_name }}"
         state: absent
 
+    - name: Log in to GitLab container registry
+      community.docker.docker_login:
+        registry_url: registry.gitlab.com
+        username: "{{ lookup('env', 'CI_REGISTRY_USER') }}"
+        password: "{{ lookup('env', 'CI_REGISTRY_PASSWORD') }}"
+
+
     - name: Pull latest Docker image from GitLab registry
       community.docker.docker_image:
         name: "{{ image_name }}"
