@@ -7,7 +7,30 @@
 </head>
 <body>
     <div class="container">
-        <h1>Welcome to DevOps Implementation Project</h1>
+        <h1>🚀 DevOps Implementation Project</h1>
+        <p class="subtitle">Visualizing the CI/CD Pipeline</p>
+
+        <!-- Pipeline Stages -->
+        <div class="pipeline">
+            <div class="stage" data-stage="Plan">📋 Plan</div>
+            <div class="arrow">➜</div>
+            <div class="stage" data-stage="Code">💻 Code</div>
+            <div class="arrow">➜</div>
+            <div class="stage" data-stage="Build">🔨 Build</div>
+            <div class="arrow">➜</div>
+            <div class="stage" data-stage="Test">🧪 Test</div>
+            <div class="arrow">➜</div>
+            <div class="stage" data-stage="Deploy">🚢 Deploy</div>
+            <div class="arrow">➜</div>
+            <div class="stage" data-stage="Monitor">📊 Monitor</div>
+        </div>
+
+        <!-- Stage Info Box -->
+        <div id="stageInfo" class="info-box">
+            <p>Click a stage to see details!</p>
+        </div>
+
+        <!-- Server message button -->
         <button id="msgButton">Get Server Message</button>
         <p id="serverMessage"></p>
     </div>
