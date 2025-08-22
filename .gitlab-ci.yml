@@ -63,4 +63,3 @@ deploy_prod:
     # Later: ansible-playbook -i inventory/prod deploy.yml
   only:
     - main
-~
