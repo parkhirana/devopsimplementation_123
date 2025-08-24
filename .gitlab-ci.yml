@@ -86,4 +86,4 @@ deploy_prod:
     # Run deploy playbook
     - ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/deploy.yml --private-key=ssh_key.pem -u ubuntu -e "target=PROD"
   only:
-    - prod
+    - main
