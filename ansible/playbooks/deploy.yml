@@ -1,6 +1,6 @@
 ---
 - name: Deploy Flask Backend App
-  hosts: TEST
+  hosts: "{{ target }}"
   become: yes
 
   vars:

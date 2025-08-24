@@ -1,6 +1,6 @@
 ---
 - name: Setup EC2 with dependencies
-  hosts: TEST
+  hosts: "{{ target }}"
   become: true
   tasks:
     - name: Update apt packages
