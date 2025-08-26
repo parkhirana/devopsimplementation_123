@@ -72,9 +72,9 @@ deploy_test:
     - echo "$env_EC2_SSH_KEY" > ssh_key.pem
     - chmod 600 ssh_key.pem
   script:
-    - ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/setup.yml \
+    - ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/setup.yml 
         --private-key=ssh_key.pem -u ubuntu -e "target=TEST"
-    - ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/deploy.yml \
+    - ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/deploy.yml 
         --private-key=ssh_key.pem -u ubuntu -e "target=TEST"
   only:
     - test
@@ -95,9 +95,9 @@ deploy_uat:
         --form "target_branch=uat" \
         --form "title=Auto merge test → uat" \
         "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/repository/merges"
-    - ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/setup.yml \
+    - ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/setup.yml 
         --private-key=ssh_key.pem -u ubuntu -e "target=UAT"
-    - ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/deploy.yml \
+    - ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/deploy.yml 
         --private-key=ssh_key.pem -u ubuntu -e "target=UAT"
   only:
     - test
@@ -118,9 +118,9 @@ deploy_prod:
         --form "target_branch=main" \
         --form "title=Auto merge uat → prod" \
         "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/repository/merges"
-    - ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/setup.yml \
+    - ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/setup.yml 
         --private-key=ssh_key.pem -u ubuntu -e "target=PROD"
-    - ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/deploy.yml \
+    - ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/deploy.yml 
         --private-key=ssh_key.pem -u ubuntu -e "target=PROD"
   only:
     - uat
