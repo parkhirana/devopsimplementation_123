@@ -1,4 +1,7 @@
 stages:
+  - lint
+  - unit-test
+  - merge-to-test
   - build
   - deploy-test
   - deploy-uat
@@ -7,83 +10,108 @@ stages:
 variables:
   IMAGE_NAME: "$CI_REGISTRY_IMAGE/devops-flask-app:$CI_COMMIT_SHA"
 
-# Build stage: builds and pushes the Docker image
+# Lint stage
+lint:
+  stage: lint
+  image: python:3.9
+  script:
+    - pip install flake8
+    - flake8 backend/ --count --select=E9,F63,F7,F82 --show-source --statistics
+  only:
+    - merge_requests
+    - branches
+
+# Unit tests
+unit_tests:
+  stage: unit-test
+  image: python:3.9
+  script:
+    - pip install pytest
+    - pytest backend/tests/
+  only:
+    - merge_requests
+    - branches
+
+# Auto merge into TEST only if unit tests pass
+merge_to_test:
+  stage: merge-to-test
+  image: curlimages/curl:latest
+  script:
+    - echo "Merging into TEST branch..."
+    - |
+      curl --request POST --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
+      "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/repository/merges" \
+      --form "source_branch=$CI_COMMIT_REF_NAME" \
+      --form "target_branch=test" \
+      --form "title=Auto-merge $CI_COMMIT_REF_NAME → test"
+  only:
+    - merge_requests
+    - branches
+  when: on_success   # runs only if lint + unit tests passed
+
+# Build stage
 build:
   stage: build
   image: docker:latest
   services:
     - docker:dind
   script:
-    - echo "Building Docker image..."
     - docker build -t $IMAGE_NAME backend/
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
     - docker push $IMAGE_NAME
   only:
     - test
-    - uat
-    - main
 
-# Deploy to TEST environment
+# Deploy to TEST
 deploy_test:
   stage: deploy-test
   image: python:3.9
   before_script:
-    - pip install --upgrade pip
     - pip install ansible
-  script:
-    - echo "Deploying to TEST environment..."
-    # Save SSH key for Ansible
     - echo "$env_EC2_SSH_KEY" > ssh_key.pem
     - chmod 600 ssh_key.pem
-
-    # Run setup playbook
+  script:
     - ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/setup.yml --private-key=ssh_key.pem -u ubuntu -e "target=TEST"
-
-    # Run deploy playbook
     - ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/deploy.yml --private-key=ssh_key.pem -u ubuntu -e "target=TEST"
   only:
     - test
 
-
-
-# Deploy to UAT environment
+# Deploy to UAT (auto merge test → uat)
 deploy_uat:
   stage: deploy-uat
   image: python:3.9
   before_script:
-    - pip install --upgrade pip
-    - pip install ansible
-  script:
-    - echo "Deploying to UAT environment..."
-    # Save SSH key for Ansible
+    - pip install ansible requests
     - echo "$env_EC2_SSH_KEY" > ssh_key.pem
     - chmod 600 ssh_key.pem
-
-    # Run setup playbook
+  script:
+    # Auto merge test → uat
+    - curl --request POST --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
+      "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/repository/merges" \
+      --form "source_branch=test" \
+      --form "target_branch=uat" \
+      --form "title=Auto merge test → uat"
     - ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/setup.yml --private-key=ssh_key.pem -u ubuntu -e "target=UAT"
-
-    # Run deploy playbook
     - ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/deploy.yml --private-key=ssh_key.pem -u ubuntu -e "target=UAT"
   only:
-    - uat
+    - test
 
-# Deploy to PROD environment
+# Deploy to PROD (auto merge uat → main)
 deploy_prod:
   stage: deploy-prod
   image: python:3.9
   before_script:
-    - pip install --upgrade pip
-    - pip install ansible
-  script:
-    - echo "Deploying to PROD environment..."
-    # Save SSH key for Ansible
+    - pip install ansible requests
     - echo "$env_EC2_SSH_KEY" > ssh_key.pem
     - chmod 600 ssh_key.pem
-
-    # Run setup playbook
+  script:
+    # Auto merge uat → main
+    - curl --request POST --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
+      "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/repository/merges" \
+      --form "source_branch=uat" \
+      --form "target_branch=main" \
+      --form "title=Auto merge uat → prod"
     - ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/setup.yml --private-key=ssh_key.pem -u ubuntu -e "target=PROD"
-
-    # Run deploy playbook
     - ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/deploy.yml --private-key=ssh_key.pem -u ubuntu -e "target=PROD"
   only:
-    - main
+    - uat
