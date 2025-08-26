@@ -26,7 +26,7 @@ unit_tests:
   stage: unit-test
   image: python:3.9
   script:
-    - pip install pytest
+    - pip install pytest flask
     - pytest backend/tests/
   only:
     - merge_requests
