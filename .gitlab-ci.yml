@@ -122,5 +122,6 @@ deploy_prod:
         --private-key=ssh_key.pem -u ubuntu -e "target=PROD"
     - ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/deploy.yml 
         --private-key=ssh_key.pem -u ubuntu -e "target=PROD"
+  needs: [deploy_uat]
   only:
-    - uat
+    - test
