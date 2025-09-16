@@ -1,12 +1,11 @@
----
 - name: Deploy Flask Backend App
   hosts: "{{ target }}"
   become: yes
 
   vars:
-    image_name: "{{ lookup('env', 'IMAGE_NAME') }}"  # passed from GitLab CI
+    image_name: "{{ lookup('env', 'IMAGE_NAME') }}"   # passed from GitHub Actions
     container_name: flask-backend
-    host_port: 80      # expose app to internet
+    host_port: 80       # expose app to internet
     container_port: 5000
 
   tasks:
@@ -15,14 +14,13 @@
         name: "{{ container_name }}"
         state: absent
 
-    - name: Log in to GitLab container registry
+    - name: Log in to Docker Hub
       community.docker.docker_login:
-        registry_url: registry.gitlab.com
-        username: "{{ lookup('env', 'CI_REGISTRY_USER') }}"
-        password: "{{ lookup('env', 'CI_REGISTRY_PASSWORD') }}"
+        registry_url: docker.io
+        username: "{{ lookup('env', 'DOCKER_USERNAME') }}"   # from GitHub Secrets
+        password: "{{ lookup('env', 'DOCKER_PASSWORD') }}"
 
-
-    - name: Pull latest Docker image from GitLab registry
+    - name: Pull latest Docker image from Docker Hub
       community.docker.docker_image:
         name: "{{ image_name }}"
         source: pull
