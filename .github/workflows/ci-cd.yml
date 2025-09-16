@@ -55,7 +55,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Build & Push Image
         run: |
-          IMAGE_NAME=${{ secrets.DOCKER_REGISTRY }}/devops-flask-app:${{ github.sha }}
+          IMAGE_NAME=${{ secrets.DOCKER_REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/devops-flask-app:${{ github.sha }}
           docker build -t $IMAGE_NAME backend/
           docker push $IMAGE_NAME
 
