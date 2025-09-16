@@ -41,23 +41,32 @@ jobs:
 
   # ---------------- Build Docker Image ----------------
   build:
-    runs-on: ubuntu-latest
-    needs: unit-tests
-    if: github.ref == 'refs/heads/test'
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      - name: Log in to DockerHub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Build & Push Image
-        run: |
-          IMAGE_NAME=${{ secrets.DOCKER_REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/devops-flask-app:${{ github.sha }}
-          docker build -t $IMAGE_NAME backend/
-          docker push $IMAGE_NAME
+  runs-on: ubuntu-latest
+  needs: unit-tests
+  if: github.ref == 'refs/heads/test'
+  outputs:
+    image-name: ${{ steps.set-image.outputs.image-name }}
+  steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Log in to DockerHub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build & Push Image
+      id: set-image
+      run: |
+        IMAGE_NAME=${{ secrets.DOCKER_REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/devops-flask-app:${{ github.sha }}
+        echo "image-name=$IMAGE_NAME" >> $GITHUB_OUTPUT   # <-- expose for other jobs
+        echo "Using image: $IMAGE_NAME"
+        docker build -t $IMAGE_NAME backend/
+        docker push $IMAGE_NAME
+
 
   # ---------------- Deploy to TEST ----------------
   deploy-test:
@@ -75,7 +84,7 @@ jobs:
           ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/setup.yml \
             --private-key=ssh_key.pem -u ubuntu -e "target=TEST"
           ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/deploy.yml \
-            --private-key=ssh_key.pem -u ubuntu -e "target=TEST"
+            --private-key=ssh_key.pem -u ubuntu -e "target=TEST" -e "IMAGE_NAME=${{ needs.build.outputs.image-name }}"
 
   # ---------------- Auto Merge TEST → UAT ----------------
   merge-test-to-uat:
